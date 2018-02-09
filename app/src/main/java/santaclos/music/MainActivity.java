@@ -76,6 +76,7 @@ public class MainActivity extends AppCompatActivity {
         prefs = getSharedPreferences("app", MODE_PRIVATE);
         prefsEditor = getSharedPreferences("app", MODE_PRIVATE).edit();
 
+
         Typeface t = Typeface.createFromAsset(getAssets(), "music.ttf");
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.tool_bar);
@@ -240,9 +241,47 @@ public class MainActivity extends AppCompatActivity {
     //navigation
 
     public void LoadArtists() {
+
+
         currentAdapter = 0;
         artists.clear();
         recyclerView.setAdapter(artistAdapter);
+        backButton.setVisibility(View.INVISIBLE);
+
+        String data = prefs.getString(artistsURL, null);
+
+        if(data == null) {
+
+            Ion.with(getApplicationContext())
+                    .load(artistsURL)
+                    .asString()
+                    .setCallback(new FutureCallback<String>() {
+                        @Override
+                        public void onCompleted(Exception e, String result) {
+
+                            if(e != null)
+                            {
+                                Toast.makeText(getApplicationContext(), "Could not connect", Toast.LENGTH_SHORT).show();
+                            }
+
+                            prefsEditor.putString(artistsURL, result);
+                            prefsEditor.commit();
+
+                            LoadArtistsFromString(result);
+                        }
+                    });
+        }
+        else {
+
+            LoadArtistsFromString(data);
+        }
+
+
+
+        /*currentAdapter = 0;
+        artists.clear();
+        recyclerView.setAdapter(artistAdapter);
+
         Ion.with(getApplicationContext())
                 .load(artistsURL)
                 .asString()
@@ -258,95 +297,121 @@ public class MainActivity extends AppCompatActivity {
                         artistAdapter.notifyDataSetChanged();
                     }
                 });
-        backButton.setVisibility(View.INVISIBLE);
+        backButton.setVisibility(View.INVISIBLE);*/
     }
 
-    public void LoadAlbums(String url) {
+    void LoadArtistsFromString(String data)
+    {
+        String lineSplit[] = data.split("\\n");
+        for (String aLineSplit : lineSplit) {
+            String split[] = aLineSplit.split("\\\\");
+            artists.add(new Artist(split[0], split[1]));
+        }
+        artistAdapter.notifyDataSetChanged();
+    }
+
+    public void LoadAlbums(final String url) {
+
         currentAdapter = 1;
         albumsURL = url;
         albums.clear();
         recyclerView.setAdapter(albumAdapter);
-        Ion.with(getApplicationContext())
-                .load(url)
-                .asString()
-                .setCallback(new FutureCallback<String>() {
-                    @Override
-                    public void onCompleted(Exception e, String result) {
-                        String lineSplit[] = result.split("\\n");
-                        for (int i = 0; i < lineSplit.length; i++) {
-                            //Toast.makeText(getApplicationContext(), "asdfas", Toast.LENGTH_SHORT).show();
-                            String split[] = lineSplit[i].split("\\\\");
-                            albums.add(new Album(split[0], split[1], split[2]));
-                        }
-                        albumAdapter.notifyDataSetChanged();
-                    }
-                });
         backButton.setVisibility(View.VISIBLE);
+
+
+        String data = prefs.getString(url, null);
+
+        if(data == null) {
+
+            Ion.with(getApplicationContext())
+                    .load(url)
+                    .asString()
+                    .setCallback(new FutureCallback<String>() {
+                        @Override
+                        public void onCompleted(Exception e, String result) {
+
+                            if(e != null)
+                            {
+                                Toast.makeText(getApplicationContext(), "Could not connect", Toast.LENGTH_SHORT).show();
+                            }
+
+                            prefsEditor.putString(url, result);
+                            prefsEditor.commit();
+
+                            LoadAlbumsFromString(result);
+                        }
+                    });
+        }
+        else
+        {
+            LoadAlbumsFromString(data);
+        }
     }
 
     public void LoadAlbums() {
-        currentAdapter = 1;
-        albums.clear();
-        recyclerView.setAdapter(albumAdapter);
-        Ion.with(getApplicationContext())
-                .load(albumsURL)
-                .asString()
-                .setCallback(new FutureCallback<String>() {
-                    @Override
-                    public void onCompleted(Exception e, String result) {
-                        String lineSplit[] = result.split("\\n");
-                        for (int i = 0; i < lineSplit.length; i++) {
-                            //Toast.makeText(getApplicationContext(), "asdfas", Toast.LENGTH_SHORT).show();
-                            String split[] = lineSplit[i].split("\\\\");
-                            albums.add(new Album(split[0], split[1], split[2]));
-                        }
-                        albumAdapter.notifyDataSetChanged();
-                    }
-                });
-        backButton.setVisibility(View.VISIBLE);
+        LoadAlbums(albumsURL);
     }
 
-    public void LoadSongs(String url) {
+    void LoadAlbumsFromString(String data)
+    {
+        String lineSplit[] = data.split("\\n");
+        for (int i = 0; i < lineSplit.length; i++) {
+            String split[] = lineSplit[i].split("\\\\");
+            albums.add(new Album(split[0], split[1], split[2]));
+        }
+        albumAdapter.notifyDataSetChanged();
+    }
+
+    public void LoadSongs(final String url) {
         currentAdapter = 2;
         songsURL = url;
         songs.clear();
         recyclerView.setAdapter(songAdapter);
-        Ion.with(getApplicationContext())
-                .load(url)
-                .asString()
-                .setCallback(new FutureCallback<String>() {
-                    @Override
-                    public void onCompleted(Exception e, String result) {
-                        String lineSplit[] = result.split("\\n");
-                        String[] artistAlbum = lineSplit[0].split("\\\\");
-                        for (int i = 1; i < lineSplit.length; i++) {
-                            String split[] = lineSplit[i].split("\\\\");
-                            songs.add(new Song(artistAlbum[0], artistAlbum[1], split[0], split[1], split.length > 2 ? split[2] : "", i, prefs));
+
+
+
+        String data = prefs.getString(url, null);
+
+        if(data == null) {
+
+            Ion.with(getApplicationContext())
+                    .load(url)
+                    .asString()
+                    .setCallback(new FutureCallback<String>() {
+                        @Override
+                        public void onCompleted(Exception e, String result) {
+
+                            if(e != null)
+                            {
+                                Toast.makeText(getApplicationContext(), "Could not connect", Toast.LENGTH_SHORT).show();
+                            }
+
+                            prefsEditor.putString(url, result);
+                            prefsEditor.commit();
+
+                            LoadSongsFromString(result);
                         }
-                        songAdapter.notifyDataSetChanged();
-                    }
-                });
+                    });
+        }
+        else
+        {
+            LoadSongsFromString(data);
+        }
     }
 
     public void LoadSongs() {
-        currentAdapter = 2;
-        songs.clear();
-        recyclerView.setAdapter(songAdapter);
-        Ion.with(getApplicationContext())
-                .load(songsURL)
-                .asString()
-                .setCallback(new FutureCallback<String>() {
-                    @Override
-                    public void onCompleted(Exception e, String result) {
-                        String lineSplit[] = result.split("\\n");
-                        String[] artistAlbum = lineSplit[0].split("\\\\");
-                        for (int i = 1; i < lineSplit.length; i++) {
-                            String split[] = lineSplit[i].split("\\\\");
-                            songs.add(new Song(artistAlbum[0], artistAlbum[1], split[0], split[1], split.length > 2 ? split[2] : "", i, prefs));
-                        }
-                        songAdapter.notifyDataSetChanged();
-                    }
-                });
+        LoadSongs(songsURL);
+    }
+
+    void LoadSongsFromString(String data)
+    {
+        String lineSplit[] = data.split("\\n");
+        String[] artistAlbum = lineSplit[0].split("\\\\");
+        for (int i = 1; i < lineSplit.length; i++) {
+            String split[] = lineSplit[i].split("\\\\");
+            songs.add(new Song(artistAlbum[0], artistAlbum[1], split[0], split[1], split.length > 2 ? split[2] : "", i, prefs));
+        }
+        songAdapter.notifyDataSetChanged();
     }
 
     private void LoadPlaylist() {
