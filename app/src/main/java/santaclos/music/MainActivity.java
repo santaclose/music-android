@@ -145,7 +145,7 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 AlertDialog.Builder aD = new AlertDialog.Builder(menuButton.getContext());
 
-                String[] buttons = MusicService.isRunning?new String[]{"Playlist", "Exit"}:new String[]{"Playlist"};
+                String[] buttons = MusicService.isRunning?new String[]{"Refresh", "Playlist", "Exit"}:new String[]{"Refresh", "Playlist"};
 
                 aD.setItems(buttons, new DialogInterface.OnClickListener() {
                     @Override
@@ -154,10 +154,26 @@ public class MainActivity extends AppCompatActivity {
                         {
                             case 0:
                             {
-                                LoadPlaylist();
+                                switch(currentAdapter)
+                                {
+                                    case 0: //artist adapter
+                                        LoadArtistsFromInternet();
+                                        break;
+                                    case 1: //album adapter
+                                        LoadAlbumsFromInternet();
+                                        break;
+                                    case 2: //song adapter
+                                        LoadSongsFromInternet();
+                                        break;
+                                }
                                 break;
                             }
                             case 1:
+                            {
+                                LoadPlaylist();
+                                break;
+                            }
+                            case 2:
                             {
                                 Intent service = new Intent(getBaseContext(), MusicService.class);
 
@@ -275,12 +291,28 @@ public class MainActivity extends AppCompatActivity {
 
             LoadArtistsFromString(data);
         }
+    }
+
+    void LoadArtistsFromString(String data)
+    {
+        String lineSplit[] = data.split("\\n");
+
+        for (int i = 0; i < lineSplit.length-1; i++) {
+
+            String split[] = lineSplit[i].split("\\\\");
+            artists.add(new Artist(split[0], split[1]));
+        }
+        artistAdapter.notifyDataSetChanged();
+    }
 
 
 
-        /*currentAdapter = 0;
+    void LoadArtistsFromInternet()
+    {
+        currentAdapter = 0;
         artists.clear();
         recyclerView.setAdapter(artistAdapter);
+        backButton.setVisibility(View.INVISIBLE);
 
         Ion.with(getApplicationContext())
                 .load(artistsURL)
@@ -288,26 +320,18 @@ public class MainActivity extends AppCompatActivity {
                 .setCallback(new FutureCallback<String>() {
                     @Override
                     public void onCompleted(Exception e, String result) {
-                        String lineSplit[] = result.split("\\n");
-                        for (int i = 0; i < lineSplit.length; i++) {
-                            //Toast.makeText(getApplicationContext(), "asdfas", Toast.LENGTH_SHORT).show();
-                            String split[] = lineSplit[i].split("\\\\");
-                            artists.add(new Artist(split[0], split[1]));
+
+                        if(e != null)
+                        {
+                            Toast.makeText(getApplicationContext(), "Could not connect", Toast.LENGTH_SHORT).show();
                         }
-                        artistAdapter.notifyDataSetChanged();
+
+                        prefsEditor.putString(artistsURL, result);
+                        prefsEditor.commit();
+
+                        LoadArtistsFromString(result);
                     }
                 });
-        backButton.setVisibility(View.INVISIBLE);*/
-    }
-
-    void LoadArtistsFromString(String data)
-    {
-        String lineSplit[] = data.split("\\n");
-        for (String aLineSplit : lineSplit) {
-            String split[] = aLineSplit.split("\\\\");
-            artists.add(new Artist(split[0], split[1]));
-        }
-        artistAdapter.notifyDataSetChanged();
     }
 
     public void LoadAlbums(final String url) {
@@ -355,19 +379,50 @@ public class MainActivity extends AppCompatActivity {
     void LoadAlbumsFromString(String data)
     {
         String lineSplit[] = data.split("\\n");
-        for (int i = 0; i < lineSplit.length; i++) {
+
+        for (int i = 0; i < lineSplit.length-1; i++) {
+
             String split[] = lineSplit[i].split("\\\\");
             albums.add(new Album(split[0], split[1], split[2]));
         }
         albumAdapter.notifyDataSetChanged();
     }
 
+    void LoadAlbumsFromInternet()
+    {
+        currentAdapter = 1;
+        albumsURL = url;
+        albums.clear();
+        recyclerView.setAdapter(albumAdapter);
+        backButton.setVisibility(View.VISIBLE);
+
+        Ion.with(getApplicationContext())
+                .load(url)
+                .asString()
+                .setCallback(new FutureCallback<String>() {
+                    @Override
+                    public void onCompleted(Exception e, String result) {
+
+                        if(e != null)
+                        {
+                            Toast.makeText(getApplicationContext(), "Could not connect", Toast.LENGTH_SHORT).show();
+                        }
+
+                        prefsEditor.putString(url, result);
+                        prefsEditor.commit();
+
+                        LoadAlbumsFromString(result);
+                    }
+                });
+    }
+
     public void LoadSongs(final String url) {
+
+
         currentAdapter = 2;
         songsURL = url;
         songs.clear();
         recyclerView.setAdapter(songAdapter);
-
 
 
         String data = prefs.getString(url, null);
@@ -407,11 +462,40 @@ public class MainActivity extends AppCompatActivity {
     {
         String lineSplit[] = data.split("\\n");
         String[] artistAlbum = lineSplit[0].split("\\\\");
-        for (int i = 1; i < lineSplit.length; i++) {
+
+        for (int i = 1; i < lineSplit.length-1; i++) {
+
             String split[] = lineSplit[i].split("\\\\");
             songs.add(new Song(artistAlbum[0], artistAlbum[1], split[0], split[1], split.length > 2 ? split[2] : "", i, prefs));
         }
         songAdapter.notifyDataSetChanged();
+    }
+
+    void LoadSongsFromInternet()
+    {
+        currentAdapter = 2;
+        songsURL = url;
+        songs.clear();
+        recyclerView.setAdapter(songAdapter);
+
+        Ion.with(getApplicationContext())
+                .load(url)
+                .asString()
+                .setCallback(new FutureCallback<String>() {
+                    @Override
+                    public void onCompleted(Exception e, String result) {
+
+                        if(e != null)
+                        {
+                            Toast.makeText(getApplicationContext(), "Could not connect", Toast.LENGTH_SHORT).show();
+                        }
+
+                        prefsEditor.putString(url, result);
+                        prefsEditor.commit();
+
+                        LoadSongsFromString(result);
+                    }
+                });
     }
 
     private void LoadPlaylist() {
