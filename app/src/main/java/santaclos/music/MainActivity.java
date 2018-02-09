@@ -70,6 +70,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -164,7 +165,6 @@ public class MainActivity extends AppCompatActivity {
                                         break;
                                     case 2: //song adapter
                                         LoadSongsFromInternet();
-                                        break;
                                 }
                                 break;
                             }
@@ -391,13 +391,12 @@ public class MainActivity extends AppCompatActivity {
     void LoadAlbumsFromInternet()
     {
         currentAdapter = 1;
-        albumsURL = url;
         albums.clear();
         recyclerView.setAdapter(albumAdapter);
         backButton.setVisibility(View.VISIBLE);
 
         Ion.with(getApplicationContext())
-                .load(url)
+                .load(albumsURL)
                 .asString()
                 .setCallback(new FutureCallback<String>() {
                     @Override
@@ -408,7 +407,7 @@ public class MainActivity extends AppCompatActivity {
                             Toast.makeText(getApplicationContext(), "Could not connect", Toast.LENGTH_SHORT).show();
                         }
 
-                        prefsEditor.putString(url, result);
+                        prefsEditor.putString(albumsURL, result);
                         prefsEditor.commit();
 
                         LoadAlbumsFromString(result);
@@ -474,12 +473,11 @@ public class MainActivity extends AppCompatActivity {
     void LoadSongsFromInternet()
     {
         currentAdapter = 2;
-        songsURL = url;
         songs.clear();
         recyclerView.setAdapter(songAdapter);
 
         Ion.with(getApplicationContext())
-                .load(url)
+                .load(songsURL)
                 .asString()
                 .setCallback(new FutureCallback<String>() {
                     @Override
@@ -490,7 +488,7 @@ public class MainActivity extends AppCompatActivity {
                             Toast.makeText(getApplicationContext(), "Could not connect", Toast.LENGTH_SHORT).show();
                         }
 
-                        prefsEditor.putString(url, result);
+                        prefsEditor.putString(songsURL, result);
                         prefsEditor.commit();
 
                         LoadSongsFromString(result);
