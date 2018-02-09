@@ -297,7 +297,10 @@ public class MainActivity extends AppCompatActivity {
     {
         String lineSplit[] = data.split("\\n");
 
-        for (int i = 0; i < lineSplit.length-1; i++) {
+        for (int i = 0; i < lineSplit.length; i++) {
+
+            if(lineSplit[i].length() < 5) // shared prefs keep 4 space in last line
+                continue;
 
             String split[] = lineSplit[i].split("\\\\");
             artists.add(new Artist(split[0], split[1]));
@@ -380,7 +383,10 @@ public class MainActivity extends AppCompatActivity {
     {
         String lineSplit[] = data.split("\\n");
 
-        for (int i = 0; i < lineSplit.length-1; i++) {
+        for (int i = 0; i < lineSplit.length; i++) {
+
+            if(lineSplit[i].length() < 5) // shared prefs keep 4 space in last line
+                continue;
 
             String split[] = lineSplit[i].split("\\\\");
             albums.add(new Album(split[0], split[1], split[2]));
@@ -462,7 +468,10 @@ public class MainActivity extends AppCompatActivity {
         String lineSplit[] = data.split("\\n");
         String[] artistAlbum = lineSplit[0].split("\\\\");
 
-        for (int i = 1; i < lineSplit.length-1; i++) {
+        for (int i = 1; i < lineSplit.length; i++) {
+
+            if(lineSplit[i].length() < 5) // shared prefs keep 4 space in last line
+                continue;
 
             String split[] = lineSplit[i].split("\\\\");
             songs.add(new Song(artistAlbum[0], artistAlbum[1], split[0], split[1], split.length > 2 ? split[2] : "", i, prefs));
